@@ -7,25 +7,13 @@
     <div v-else-if="error" class="status error">{{ error }}</div>
 
     <div v-else-if="apodData" class="apod-container">
-      <h2>{{ apodData.title }}</h2>
-      <p class="date">{{ apodData.date }}</p>
-
-      <img
-        v-if="apodData.media_type === 'image'"
-        :src="apodData.url"
-        :alt="apodData.title"
-        class="apod-media"
+      <ImageCard
+        :title="apodData.title"
+        :date="apodData.date"
+        :imageUrl="apodData.url"
+        :description="apodData.explanation"
+        :mediaType="apodData.media_type"
       />
-      <iframe
-        v-else-if="apodData.media_type === 'video'"
-        :src="apodData.url"
-        class="apod-media video"
-        frameborder="0"
-        allowfullscreen
-      >
-      </iframe>
-
-      <p class="description">{{ apodData.explanation }}</p>
     </div>
   </div>
 </template>
@@ -33,6 +21,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
+import ImageCard from '../components/ImageCard.vue'
 
 const apodData = ref(null)
 const loading = ref(true)
@@ -70,26 +59,5 @@ onMounted(() => {
 }
 .error {
   color: #ff4a4a;
-}
-.apod-media {
-  max-width: 100%;
-  border-radius: 8px;
-  margin: 20px 0;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
-}
-.video {
-  width: 100%;
-  height: 450px;
-}
-.description {
-  text-align: justify;
-  line-height: 1.6;
-  padding: 1rem;
-  background: #2a2a2a;
-  border-radius: 8px;
-}
-.date {
-  color: #888;
-  font-style: italic;
 }
 </style>
