@@ -3,25 +3,14 @@
     <button type="button" class="back-button" @click="goBack">← Retour</button>
 
     <div v-if="imageData" class="detail-card">
-      <div class="detail-media">
-        <img
-          v-if="imageData.mediaType === 'image'"
-          :src="imageData.imageUrl"
-          :alt="imageData.title"
-        />
-        <iframe
-          v-else-if="imageData.mediaType === 'video'"
-          :src="imageData.imageUrl"
-          frameborder="0"
-          allowfullscreen
-        />
-      </div>
-
-      <div class="detail-content">
-        <h1>{{ imageData.title }}</h1>
-        <p class="detail-date" v-if="imageData.date">{{ imageData.date }}</p>
-        <p class="detail-description">{{ imageData.description }}</p>
-      </div>
+      <ImageCard
+        :title="imageData.title"
+        :date="imageData.date"
+        :imageUrl="imageData.imageUrl"
+        :description="imageData.description"
+        :mediaType="imageData.mediaType"
+        :favoritePayload="imageData"
+      />
     </div>
 
     <div v-else class="missing-state">
@@ -34,6 +23,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import ImageCard from '../components/ImageCard.vue'
 
 const route = useRoute()
 const router = useRouter()
