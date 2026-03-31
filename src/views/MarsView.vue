@@ -35,8 +35,8 @@ import { useFavoritesStore } from '../stores/favorites'
 
 const route = useRoute()
 const photos = ref([])
-const loading = ref(false)
-const error = ref('')
+const loading = ref(true)
+const error = ref(null)
 const favoritesStore = useFavoritesStore()
 
 const API_KEY = import.meta.env.VITE_NASA_API_KEY || 'DEMO_KEY'
@@ -71,29 +71,29 @@ const buildPhotoCardsFromImagesApi = (items, roverName) =>
 // Fonction pour récupérer les photos du rover
 const fetchRoverPhotos = async () => {
   loading.value = true
-  error.value = ''
+  error.value = null
   photos.value = []
 
   const roverName = route.params.roverName.toLowerCase()
 
   try {
-    const response = await axios.get(`${BASE_URL}/${roverName}/photos`, {
-      params: {
-        sol: 100,
-        api_key: API_KEY,
-      },
-    })
+    try {
+      const response = await axios.get(`${BASE_URL}/${roverName}/photos`, {
+        params: {
+          sol: 100,
+          api_key: API_KEY,
+        },
+      })
 
-    const nasaPhotos = response.data?.photos ?? []
-    if (nasaPhotos.length > 0) {
-      photos.value = buildPhotoCardsFromMarsApi(nasaPhotos, roverName)
-      return
+      const nasaPhotos = response.data?.photos ?? []
+      if (nasaPhotos.length > 0) {
+        photos.value = buildPhotoCardsFromMarsApi(nasaPhotos, roverName)
+        return
+      }
+    } catch (err) {
+      console.warn('Mars Photos API indisponible, bascule vers la NASA Image API.', err)
     }
-  } catch (err) {
-    console.warn('Mars Photos API indisponible, bascule vers la NASA Image API.', err)
-  }
 
-  try {
     const response = await axios.get(IMAGE_API_URL, {
       params: {
         q: `${roverName} rover mars`,
@@ -108,8 +108,9 @@ const fetchRoverPhotos = async () => {
       error.value = 'Aucune photo disponible pour ce rover.'
     }
   } catch (err) {
-    error.value = 'Impossible de recuperer les photos de Mars pour le moment.'
-    console.error('Erreur API NASA:', err.response?.status, err.response?.data)
+    console.error('Erreur API NASA:', err)
+    error.value =
+      error.value || 'Impossible de récupérer les photos de Mars pour le moment.'
   } finally {
     loading.value = false
   }
