@@ -10,6 +10,8 @@ export const useFavoritesStore = defineStore('favorites', {
     favorites: [],
   }),
   getters: {
+    allFavorites: (state) => state.favorites,
+    favoritesCount: (state) => state.favorites.length,
     totalFavorites: (state) => state.favorites.length,
   },
   actions: {
