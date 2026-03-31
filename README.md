@@ -114,7 +114,17 @@ Projet realise en binome:
 
 Repartition des taches:
 
-- La repartition detaillee des taches est a consulter dans l'historique des commits Git du projet.
+- Repartition etablie a partir de l'historique Git (auteurs: `younesguehhoudi` et `unknown`/`Hraf 59` pour Achraf):
+- Younes Guehhoudi:
+  - Mise en place du router et des routes principales.
+  - Appel API APOD sur la page d'accueil.
+  - Mise en place du store Pinia (configuration + actions + getters) et page Favoris.
+  - Refonte UI globale et mise a jour du README.
+- Achraf Addaq:
+  - Creation du composant reutilisable `ImageCard`.
+  - Ameliorations MarsView: gestion erreurs/chargement, recherche, pagination.
+  - Navigation vers page detail et correctifs d'affichage detail.
+  - Mise en place du composant `NotificationToast`.
 
 ## 8. Organisation du travail et collaboration
 
