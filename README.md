@@ -105,7 +105,7 @@ VITE_NASA_API_KEY=VOTRE_CLE_API
 - `src/stores`: store Pinia pour les favoris.
 - `src/router`: configuration des routes.
 
-## 7. Qui a fait quoi (si binome)
+## 7. Qui a fait quoi
 
 Projet realise en binome:
 
