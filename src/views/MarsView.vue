@@ -10,9 +10,9 @@
     <p v-if="loading" class="loading">Chargement des photos...</p>
     <p v-else-if="error" class="error">{{ error }}</p>
 
-    <div v-else-if="photos.length > 0" class="photos-grid">
+    <div v-else-if="visiblePhotos.length > 0" class="photos-grid">
       <ImageCard
-        v-for="photo in photos"
+        v-for="photo in visiblePhotos"
         :key="photo.id"
         :title="photo.title"
         :date="photo.date"
@@ -26,6 +26,16 @@
         @add-favorite="handleAddFavorite"
       />
     </div>
+
+    <button
+      v-if="displayedCount < allPhotos.length"
+      class="load-more"
+      type="button"
+      @click="displayedCount += 12"
+    >
+      Charger la suite 🚀
+    </button>
+
     <div v-else class="no-photos">Aucune photo disponible pour ce rover</div>
 
     <NotificationToast :message="toastMessage" :visible="toastVisible" />
@@ -33,7 +43,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from 'axios'
 import ImageCard from '../components/ImageCard.vue'
@@ -41,7 +51,9 @@ import NotificationToast from '../components/NotificationToast.vue'
 import { useFavoritesStore } from '../stores/favorites'
 
 const route = useRoute()
-const photos = ref([])
+const allPhotos = ref([])
+const displayedCount = ref(12)
+const visiblePhotos = computed(() => allPhotos.value.slice(0, displayedCount.value))
 const loading = ref(true)
 const error = ref(null)
 const toastMessage = ref('')
@@ -82,7 +94,8 @@ const buildPhotoCardsFromImagesApi = (items, roverName) =>
 const fetchRoverPhotos = async () => {
   loading.value = true
   error.value = null
-  photos.value = []
+  displayedCount.value = 12
+  allPhotos.value = []
 
   const roverName = route.params.roverName.toLowerCase()
 
@@ -97,7 +110,7 @@ const fetchRoverPhotos = async () => {
 
       const nasaPhotos = response.data?.photos ?? []
       if (nasaPhotos.length > 0) {
-        photos.value = buildPhotoCardsFromMarsApi(nasaPhotos, roverName)
+        allPhotos.value = buildPhotoCardsFromMarsApi(nasaPhotos, roverName)
         return
       }
     } catch (err) {
@@ -112,9 +125,9 @@ const fetchRoverPhotos = async () => {
     })
 
     const items = response.data?.collection?.items ?? []
-    photos.value = buildPhotoCardsFromImagesApi(items, roverName)
+    allPhotos.value = buildPhotoCardsFromImagesApi(items, roverName)
 
-    if (photos.value.length === 0) {
+    if (allPhotos.value.length === 0) {
       error.value = 'Aucune photo disponible pour ce rover.'
     }
   } catch (err) {
@@ -206,6 +219,23 @@ h1 {
   align-items: start;
   justify-content: center;
   grid-auto-rows: 1fr;
+}
+
+.load-more {
+  justify-self: center;
+  padding: 0.9rem 1.5rem;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-strong));
+  color: #111;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 18px 40px rgba(255, 119, 69, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.load-more:hover {
+  transform: translateY(-1px);
 }
 
 .no-photos {
