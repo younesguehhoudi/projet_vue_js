@@ -1,33 +1,39 @@
 <template>
   <div class="image-card">
-    <h2 class="image-card-title">{{ title }}</h2>
-    <p v-if="date" class="image-card-date">{{ date }}</p>
+    <div class="image-card-media-wrapper">
+      <img
+        v-if="mediaType === 'image'"
+        :src="imageUrl"
+        :alt="title"
+        class="image-card-media"
+      />
 
-    <img
-      v-if="mediaType === 'image'"
-      :src="imageUrl"
-      :alt="title"
-      class="image-card-media"
-    />
+      <iframe
+        v-else-if="mediaType === 'video'"
+        :src="imageUrl"
+        class="image-card-media video"
+        frameborder="0"
+        allowfullscreen
+      />
+    </div>
 
-    <iframe
-      v-else-if="mediaType === 'video'"
-      :src="imageUrl"
-      class="image-card-media video"
-      frameborder="0"
-      allowfullscreen
-    />
+    <div class="image-card-body">
+      <div class="image-card-header">
+        <h2 class="image-card-title">{{ title }}</h2>
+        <p v-if="date" class="image-card-date">{{ date }}</p>
+      </div>
 
-    <p class="image-card-description">{{ description }}</p>
+      <p class="image-card-description">{{ description }}</p>
 
-    <button
-      v-if="favoritePayload"
-      class="favorite-button"
-      type="button"
-      @click="emitAddFavorite"
-    >
-      Ajouter aux favoris
-    </button>
+      <button
+        v-if="favoritePayload"
+        class="favorite-button"
+        type="button"
+        @click="emitAddFavorite"
+      >
+        Ajouter aux favoris
+      </button>
+    </div>
   </div>
 </template>
 
@@ -51,52 +57,81 @@ const emitAddFavorite = () => {
 
 <style scoped>
 .image-card {
-  text-align: center;
+  display: grid;
+  gap: 1.2rem;
+  padding: 1.2rem;
+  border-radius: 24px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 24px 48px var(--color-shadow);
+  backdrop-filter: blur(12px);
 }
 
-.image-card-title {
-  margin: 0;
-}
-
-.image-card-date {
-  color: #888;
-  font-style: italic;
-  margin: 8px 0 16px;
+.image-card-media-wrapper {
+  border-radius: 18px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .image-card-media {
-  max-width: 100%;
-  border-radius: 8px;
-  margin: 1rem 0;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+  width: 100%;
+  display: block;
+  object-fit: cover;
 }
 
 .video {
   width: 100%;
-  height: 450px;
+  aspect-ratio: 16 / 9;
+  border: none;
+}
+
+.image-card-body {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.image-card-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.image-card-date {
+  color: var(--color-muted);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
 }
 
 .image-card-description {
-  text-align: justify;
-  line-height: 1.6;
-  padding: 1rem;
-  background: #2a2a2a;
-  border-radius: 8px;
-  color: #fff;
+  line-height: 1.7;
+  color: var(--color-muted);
 }
 
 .favorite-button {
-  margin-top: 1rem;
-  padding: 0.6rem 1rem;
+  justify-self: start;
+  padding: 0.65rem 1.2rem;
   border: none;
   border-radius: 999px;
-  background: #ff6b6b;
-  color: #fff;
+  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-strong));
+  color: #1b0b0b;
   font-weight: 600;
   cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 12px 30px rgba(255, 111, 97, 0.35);
 }
 
 .favorite-button:hover {
-  background: #ff4a4a;
+  transform: translateY(-1px) scale(1.01);
+}
+
+@media (min-width: 768px) {
+  .image-card {
+    padding: 1.5rem;
+  }
+
+  .image-card-title {
+    font-size: 1.4rem;
+  }
 }
 </style>

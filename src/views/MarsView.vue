@@ -1,6 +1,12 @@
 <template>
   <div class="mars-view">
-    <h1>Exploration Mars - {{ route.params.roverName }}</h1>
+    <section class="mars-hero">
+      <p class="hero-kicker">Mission Mars</p>
+      <h1>Exploration Mars - {{ route.params.roverName }}</h1>
+      <p class="hero-subtitle">
+        Decouvrez les images recentes des rovers martiens. Selectionnez vos favoris en un clic.
+      </p>
+    </section>
     <p v-if="loading" class="loading">Chargement des photos...</p>
     <p v-else-if="error" class="error">{{ error }}</p>
     <div v-else-if="photos.length > 0" class="photos-grid">
@@ -127,12 +133,35 @@ watch(
 
 <style scoped>
 .mars-view {
-  padding: 2rem;
+  display: grid;
+  gap: 2rem;
 }
 
 h1 {
   text-transform: uppercase;
-  margin-bottom: 2rem;
+  letter-spacing: 0.08em;
+  font-size: 1.8rem;
+}
+
+.mars-hero {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  border-radius: 24px;
+  background: var(--color-surface-strong);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 18px 40px var(--color-shadow);
+}
+
+.hero-kicker {
+  text-transform: uppercase;
+  letter-spacing: 0.45em;
+  font-size: 0.7rem;
+  color: var(--color-muted);
+}
+
+.hero-subtitle {
+  color: var(--color-muted);
 }
 
 .loading,
@@ -140,22 +169,35 @@ h1 {
   text-align: center;
   padding: 2rem;
   font-weight: bold;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--color-border);
 }
 
 .error {
-  color: #ff6b6b;
+  color: var(--color-accent-strong);
 }
 
 .photos-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.5rem;
 }
 
 .no-photos {
   text-align: center;
   padding: 2rem;
-  color: #888;
+  color: var(--color-muted);
   font-style: italic;
+}
+
+@media (min-width: 768px) {
+  h1 {
+    font-size: 2.2rem;
+  }
+
+  .photos-grid {
+    gap: 2rem;
+  }
 }
 </style>
