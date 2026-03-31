@@ -16,15 +16,17 @@ export const useFavoritesStore = defineStore('favorites', {
   },
   actions: {
     addFavorite(image) {
-      if (!image) return
+      if (!image) return false
 
       const imageKey = getImageKey(image)
-      if (imageKey === null) return
+      if (imageKey === null) return false
 
       const exists = this.favorites.some((item) => getImageKey(item) === imageKey)
       if (!exists) {
         this.favorites.push(image)
+        return true
       }
+      return false
     },
     removeFavorite(imageId) {
       if (!imageId) return

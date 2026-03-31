@@ -2,6 +2,8 @@
   <section class="detail-page">
     <button type="button" class="back-button" @click="goBack">← Retour</button>
 
+    <NotificationToast :message="toastMessage" :visible="toastVisible" />
+
     <div v-if="imageData" class="detail-card">
       <ImageCard
         :title="imageData.title"
@@ -10,6 +12,7 @@
         :description="imageData.description"
         :mediaType="imageData.mediaType"
         :favoritePayload="imageData"
+        @add-favorite="handleAddFavorite"
       />
     </div>
 
@@ -24,10 +27,15 @@
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import ImageCard from '../components/ImageCard.vue'
+import NotificationToast from '../components/NotificationToast.vue'
+import { useFavoritesStore } from '../stores/favorites'
 
 const route = useRoute()
 const router = useRouter()
 const imageData = ref(route.state ?? null)
+const toastMessage = ref('')
+const toastVisible = ref(false)
+let toastTimeout = null
 
 if (!imageData.value && route.params.id) {
   const stored = sessionStorage.getItem(`detail-image-${route.params.id}`)
@@ -38,6 +46,22 @@ if (!imageData.value && route.params.id) {
       console.error('Impossible de parser les données de detail depuis sessionStorage', err)
     }
   }
+}
+
+const showToast = (message) => {
+  toastMessage.value = message
+  toastVisible.value = true
+  clearTimeout(toastTimeout)
+  toastTimeout = setTimeout(() => {
+    toastVisible.value = false
+  }, 2600)
+}
+
+const favoritesStore = useFavoritesStore()
+
+const handleAddFavorite = (image) => {
+  const added = favoritesStore.addFavorite(image)
+  showToast(added ? 'Favori ajouté !' : 'Déjà dans les favoris')
 }
 
 const goBack = () => {

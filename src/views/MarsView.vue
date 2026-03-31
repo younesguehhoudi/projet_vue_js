@@ -9,6 +9,7 @@
     </section>
     <p v-if="loading" class="loading">Chargement des photos...</p>
     <p v-else-if="error" class="error">{{ error }}</p>
+
     <div v-else-if="photos.length > 0" class="photos-grid">
       <ImageCard
         v-for="photo in photos"
@@ -19,10 +20,15 @@
         :description="photo.description"
         mediaType="image"
         :favoritePayload="photo"
+        detailRoute="image-detail"
+        :detailParams="{ id: photo.id }"
+        :detailState="photo"
         @add-favorite="handleAddFavorite"
       />
     </div>
     <div v-else class="no-photos">Aucune photo disponible pour ce rover</div>
+
+    <NotificationToast :message="toastMessage" :visible="toastVisible" />
   </div>
 </template>
 
@@ -31,12 +37,16 @@ import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from 'axios'
 import ImageCard from '../components/ImageCard.vue'
+import NotificationToast from '../components/NotificationToast.vue'
 import { useFavoritesStore } from '../stores/favorites'
 
 const route = useRoute()
 const photos = ref([])
 const loading = ref(true)
 const error = ref(null)
+const toastMessage = ref('')
+const toastVisible = ref(false)
+let toastTimeout = null
 const favoritesStore = useFavoritesStore()
 
 const API_KEY = import.meta.env.VITE_NASA_API_KEY || 'DEMO_KEY'
@@ -116,8 +126,18 @@ const fetchRoverPhotos = async () => {
   }
 }
 
+const showToast = (message) => {
+  toastMessage.value = message
+  toastVisible.value = true
+  clearTimeout(toastTimeout)
+  toastTimeout = setTimeout(() => {
+    toastVisible.value = false
+  }, 2600)
+}
+
 const handleAddFavorite = (image) => {
-  favoritesStore.addFavorite(image)
+  const added = favoritesStore.addFavorite(image)
+  showToast(added ? 'Favori ajouté !' : 'Déjà dans les favoris')
 }
 
 // Appel initial au chargement du composant
@@ -181,8 +201,11 @@ h1 {
 
 .photos-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 1.5rem;
+  align-items: start;
+  justify-content: center;
+  grid-auto-rows: 1fr;
 }
 
 .no-photos {

@@ -19,6 +19,12 @@ const router = createRouter({
       name: 'favoris',
       component: () => import('../views/FavoriteView.vue'),
     },
+    {
+      path: '/detail/:id',
+      name: 'image-detail',
+      component: () => import('../views/ImageDetailView.vue'),
+      props: true,
+    },
   ],
 })
 

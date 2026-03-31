@@ -20,9 +20,14 @@
         :description="apodData.explanation"
         :mediaType="apodData.media_type"
         :favoritePayload="favoritePayload"
+        detailRoute="image-detail"
+        :detailParams="{ id: apodData.date }"
+        :detailState="favoritePayload"
         @add-favorite="handleAddFavorite"
       />
     </div>
+
+    <NotificationToast :message="toastMessage" :visible="toastVisible" />
   </div>
 </template>
 
@@ -30,11 +35,15 @@
 import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
 import ImageCard from '../components/ImageCard.vue'
+import NotificationToast from '../components/NotificationToast.vue'
 import { useFavoritesStore } from '../stores/favorites'
 
 const apodData = ref(null)
 const loading = ref(true)
 const error = ref(null)
+const toastMessage = ref('')
+const toastVisible = ref(false)
+let toastTimeout = null
 const favoritesStore = useFavoritesStore()
 
 const favoritePayload = computed(() => {
@@ -50,8 +59,18 @@ const favoritePayload = computed(() => {
   }
 })
 
+const showToast = (message) => {
+  toastMessage.value = message
+  toastVisible.value = true
+  clearTimeout(toastTimeout)
+  toastTimeout = setTimeout(() => {
+    toastVisible.value = false
+  }, 2600)
+}
+
 const handleAddFavorite = (image) => {
-  favoritesStore.addFavorite(image)
+  const added = favoritesStore.addFavorite(image)
+  showToast(added ? 'Favori ajouté !' : 'Déjà dans les favoris')
 }
 
 const fetchApod = async () => {
