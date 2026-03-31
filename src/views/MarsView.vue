@@ -12,6 +12,8 @@
         :imageUrl="photo.imageUrl"
         :description="photo.description"
         mediaType="image"
+        :favoritePayload="photo"
+        @add-favorite="handleAddFavorite"
       />
     </div>
     <div v-else class="no-photos">Aucune photo disponible pour ce rover</div>
@@ -23,11 +25,13 @@ import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from 'axios'
 import ImageCard from '../components/ImageCard.vue'
+import { useFavoritesStore } from '../stores/favorites'
 
 const route = useRoute()
 const photos = ref([])
 const loading = ref(false)
 const error = ref('')
+const favoritesStore = useFavoritesStore()
 
 const API_KEY = import.meta.env.VITE_NASA_API_KEY || 'DEMO_KEY'
 const BASE_URL = 'https://api.nasa.gov/mars-photos/api/v1/rovers'
@@ -103,6 +107,10 @@ const fetchRoverPhotos = async () => {
   } finally {
     loading.value = false
   }
+}
+
+const handleAddFavorite = (image) => {
+  favoritesStore.addFavorite(image)
 }
 
 // Appel initial au chargement du composant

@@ -5,17 +5,6 @@ const getImageKey = (image) => {
   return image.id ?? image.url ?? image.img_src ?? image.imageUrl ?? null
 }
 
-const isSameImage = (left, right) => {
-  const leftKey = getImageKey(left)
-  const rightKey = getImageKey(right)
-
-  if (leftKey !== null && rightKey !== null) {
-    return leftKey === rightKey
-  }
-
-  return left === right
-}
-
 export const useFavoritesStore = defineStore('favorites', {
   state: () => ({
     favorites: [],
@@ -27,15 +16,18 @@ export const useFavoritesStore = defineStore('favorites', {
     addFavorite(image) {
       if (!image) return
 
-      const exists = this.favorites.some((item) => isSameImage(item, image))
+      const imageKey = getImageKey(image)
+      if (imageKey === null) return
+
+      const exists = this.favorites.some((item) => getImageKey(item) === imageKey)
       if (!exists) {
         this.favorites.push(image)
       }
     },
-    removeFavorite(image) {
-      if (!image) return
+    removeFavorite(imageId) {
+      if (!imageId) return
 
-      this.favorites = this.favorites.filter((item) => !isSameImage(item, image))
+      this.favorites = this.favorites.filter((item) => getImageKey(item) !== imageId)
     },
   },
 })

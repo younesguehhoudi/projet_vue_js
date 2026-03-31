@@ -19,17 +19,34 @@
     />
 
     <p class="image-card-description">{{ description }}</p>
+
+    <button
+      v-if="favoritePayload"
+      class="favorite-button"
+      type="button"
+      @click="emitAddFavorite"
+    >
+      Ajouter aux favoris
+    </button>
   </div>
 </template>
 
 <script setup>
+const emit = defineEmits(['add-favorite'])
+
 const props = defineProps({
   title: { type: String, default: '' },
   date: { type: String, default: '' },
   imageUrl: { type: String, default: '' },
   description: { type: String, default: '' },
   mediaType: { type: String, default: 'image' },
+  favoritePayload: { type: Object, default: null },
 })
+
+const emitAddFavorite = () => {
+  if (!props.favoritePayload) return
+  emit('add-favorite', props.favoritePayload)
+}
 </script>
 
 <style scoped>
@@ -66,5 +83,20 @@ const props = defineProps({
   background: #2a2a2a;
   border-radius: 8px;
   color: #fff;
+}
+
+.favorite-button {
+  margin-top: 1rem;
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 999px;
+  background: #ff6b6b;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.favorite-button:hover {
+  background: #ff4a4a;
 }
 </style>

@@ -13,19 +13,40 @@
         :imageUrl="apodData.url"
         :description="apodData.explanation"
         :mediaType="apodData.media_type"
+        :favoritePayload="favoritePayload"
+        @add-favorite="handleAddFavorite"
       />
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
 import ImageCard from '../components/ImageCard.vue'
+import { useFavoritesStore } from '../stores/favorites'
 
 const apodData = ref(null)
 const loading = ref(true)
 const error = ref(null)
+const favoritesStore = useFavoritesStore()
+
+const favoritePayload = computed(() => {
+  if (!apodData.value) return null
+
+  return {
+    id: apodData.value.date ?? apodData.value.url,
+    title: apodData.value.title,
+    date: apodData.value.date,
+    imageUrl: apodData.value.url,
+    description: apodData.value.explanation,
+    mediaType: apodData.value.media_type,
+  }
+})
+
+const handleAddFavorite = (image) => {
+  favoritesStore.addFavorite(image)
+}
 
 const fetchApod = async () => {
   try {
