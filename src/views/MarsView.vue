@@ -9,13 +9,13 @@
     </section>
 
     <section class="search-panel">
-      <label class="search-label" for="photo-search">Recherche rapide</label>
+      <label class="search-label" for="photo-search">Recherche et filtres</label>
       <div class="search-input-group">
         <input
           id="photo-search"
           v-model="searchTerm"
           type="search"
-          placeholder="Titre, caméra, description..."
+          placeholder="Titre, description, date..."
           class="search-input"
         />
         <button
@@ -27,8 +27,45 @@
           ✕
         </button>
       </div>
-      <p class="search-info" v-if="searchTerm">
-        {{ filteredPhotos.length }} résultat{{ filteredPhotos.length > 1 ? 's' : '' }} trouvé{{ filteredPhotos.length > 1 ? 's' : '' }}
+
+      <div class="filters-grid">
+        <label class="filter-field" for="date-from">
+          <span>Date min</span>
+          <input id="date-from" v-model="dateFrom" type="date" class="filter-input" />
+        </label>
+
+        <label class="filter-field" for="date-to">
+          <span>Date max</span>
+          <input id="date-to" v-model="dateTo" type="date" class="filter-input" />
+        </label>
+
+        <label class="filter-field" for="year-filter">
+          <span>Annee</span>
+          <select id="year-filter" v-model="selectedYear" class="filter-input">
+            <option value="">Toutes</option>
+            <option v-for="year in yearOptions" :key="year" :value="year">
+              {{ year }}
+            </option>
+          </select>
+        </label>
+
+        <label class="filter-field" for="sort-order">
+          <span>Trier par date</span>
+          <select id="sort-order" v-model="sortOrder" class="filter-input">
+            <option value="desc">Plus recentes</option>
+            <option value="asc">Plus anciennes</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="filters-actions">
+        <button type="button" class="reset-filters" @click="resetFilters">
+          Reinitialiser les filtres
+        </button>
+      </div>
+
+      <p class="search-info" v-if="hasActiveFilters || filteredPhotos.length">
+        {{ visiblePhotos.length }} resultat{{ visiblePhotos.length > 1 ? 's' : '' }} affiché{{ visiblePhotos.length > 1 ? 's' : '' }}
       </p>
     </section>
 
@@ -62,7 +99,7 @@
     </button>
 
     <div v-else class="no-photos">
-      {{ searchTerm ? 'Aucune photo ne correspond à votre recherche.' : 'Aucune photo disponible pour ce rover' }}
+      {{ hasActiveFilters ? 'Aucune photo ne correspond aux filtres selectionnes.' : 'Aucune photo disponible pour ce rover' }}
     </div>
 
     <NotificationToast :message="toastMessage" :visible="toastVisible" />
@@ -81,15 +118,68 @@ const route = useRoute()
 const allPhotos = ref([])
 const displayedCount = ref(12)
 const searchTerm = ref('')
+const dateFrom = ref('')
+const dateTo = ref('')
+const selectedYear = ref('')
+const sortOrder = ref('desc')
+
+const yearOptions = computed(() => {
+  return [...new Set(
+    allPhotos.value
+      .map((photo) => (typeof photo.date === 'string' ? photo.date.slice(0, 4) : ''))
+      .filter((year) => /^\d{4}$/.test(year)),
+  )].sort((a, b) => Number(b) - Number(a))
+})
+
+const hasActiveFilters = computed(() => {
+  return Boolean(searchTerm.value || dateFrom.value || dateTo.value || selectedYear.value)
+})
+
+const buildSearchableDate = (value) => {
+  if (typeof value !== 'string' || !value) return ''
+  const [year, month, day] = value.split('-')
+  if (!year || !month || !day) return value
+  return `${value} ${day}/${month}/${year}`
+}
+
 const filteredPhotos = computed(() => {
   const query = searchTerm.value.trim().toLowerCase()
-  if (!query) return allPhotos.value
+  const fromDate = dateFrom.value ? new Date(dateFrom.value) : null
+  const toDate = dateTo.value ? new Date(dateTo.value) : null
+  if (toDate) {
+    // Include the entire selected day in upper-bound filtering.
+    toDate.setHours(23, 59, 59, 999)
+  }
 
-  return allPhotos.value.filter((photo) => {
-    const title = photo.title?.toLowerCase() ?? ''
-    const description = photo.description?.toLowerCase() ?? ''
-    const date = photo.date?.toLowerCase() ?? ''
-    return title.includes(query) || description.includes(query) || date.includes(query)
+  const baseFiltered = allPhotos.value.filter((photo) => {
+    const title = String(photo.title ?? '').toLowerCase()
+    const description = String(photo.description ?? '').toLowerCase()
+    const date = String(photo.date ?? '').toLowerCase()
+    const camera = String(photo.camera ?? '').toLowerCase()
+    const searchableDate = buildSearchableDate(photo.date).toLowerCase()
+
+    const matchesText =
+      !query ||
+      title.includes(query) ||
+      description.includes(query) ||
+      date.includes(query) ||
+      searchableDate.includes(query) ||
+      camera.includes(query)
+
+    const photoDate = photo.date ? new Date(photo.date) : null
+    const matchesFromDate = !fromDate || (photoDate && photoDate >= fromDate)
+    const matchesToDate = !toDate || (photoDate && photoDate <= toDate)
+    const photoYear = typeof photo.date === 'string' ? photo.date.slice(0, 4) : ''
+    const matchesYear = !selectedYear.value || photoYear === selectedYear.value
+
+    return matchesText && matchesFromDate && matchesToDate && matchesYear
+  })
+
+  return [...baseFiltered].sort((a, b) => {
+    const dateA = a.date ? new Date(a.date).getTime() : 0
+    const dateB = b.date ? new Date(b.date).getTime() : 0
+    if (sortOrder.value === 'asc') return dateA - dateB
+    return dateB - dateA
   })
 })
 const visiblePhotos = computed(() => filteredPhotos.value.slice(0, displayedCount.value))
@@ -107,9 +197,10 @@ const IMAGE_API_URL = 'https://images-api.nasa.gov/search'
 const buildPhotoCardsFromMarsApi = (items, roverName) =>
   items.map((photo) => ({
     id: photo.id,
-    title: `Photo du rover ${photo.rover?.name ?? roverName}`,
+    title: `${photo.camera?.full_name ?? photo.camera?.name ?? 'Photo'} - Sol ${photo.sol ?? 'N/A'}`,
     date: photo.earth_date ?? '',
     imageUrl: photo.img_src,
+    camera: photo.camera?.name ?? '',
     description: `Camera: ${photo.camera?.full_name ?? 'N/A'} | Sol: ${photo.sol ?? 'N/A'}`,
     mediaType: 'image',
   }))
@@ -126,10 +217,19 @@ const buildPhotoCardsFromImagesApi = (items, roverName) =>
         title: data.title ?? `Photo du rover ${roverName}`,
         date,
         imageUrl: item.links[0].href,
+        camera: '',
         description: data.description ?? 'Photo issue de la NASA Image API',
         mediaType: 'image',
       }
     })
+
+const resetFilters = () => {
+  searchTerm.value = ''
+  dateFrom.value = ''
+  dateTo.value = ''
+  selectedYear.value = ''
+  sortOrder.value = 'desc'
+}
 
 // Fonction pour récupérer les photos du rover
 const fetchRoverPhotos = async () => {
@@ -199,6 +299,10 @@ fetchRoverPhotos()
 
 // Reset displayed count and keep search in sync
 watch(searchTerm, () => {
+  displayedCount.value = 12
+})
+
+watch([dateFrom, dateTo, selectedYear, sortOrder], () => {
   displayedCount.value = 12
 })
 
@@ -318,6 +422,45 @@ h1 {
 .search-info {
   color: var(--color-muted);
   font-size: 0.95rem;
+}
+
+.filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.9rem;
+}
+
+.filter-field {
+  display: grid;
+  gap: 0.45rem;
+  font-size: 0.85rem;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.filter-input {
+  width: 100%;
+  min-width: 0;
+  padding: 0.8rem 0.9rem;
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: inherit;
+}
+
+.filters-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.reset-filters {
+  border: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.06);
+  color: inherit;
+  border-radius: 999px;
+  padding: 0.55rem 1rem;
+  cursor: pointer;
 }
 
 .load-more {

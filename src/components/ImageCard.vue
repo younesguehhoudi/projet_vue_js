@@ -6,6 +6,7 @@
         :src="imageUrl"
         :alt="title"
         class="image-card-media"
+        :style="mediaStyle"
       />
 
       <iframe
@@ -49,6 +50,11 @@ const props = defineProps({
   imageUrl: { type: String, default: '' },
   description: { type: String, default: '' },
   mediaType: { type: String, default: 'image' },
+  mediaFit: {
+    type: String,
+    default: 'cover',
+    validator: (value) => ['cover', 'contain'].includes(value),
+  },
   favoritePayload: { type: Object, default: null },
   detailRoute: { type: String, default: '' },
   detailParams: { type: Object, default: () => ({}) },
@@ -57,6 +63,7 @@ const props = defineProps({
 
 const router = useRouter()
 const hasDetail = computed(() => Boolean(props.detailRoute))
+const mediaStyle = computed(() => ({ objectFit: props.mediaFit }))
 
 const goToDetail = () => {
   if (!props.detailRoute) return
@@ -120,7 +127,6 @@ const emitAddFavorite = (event) => {
   width: 100%;
   height: 100%;
   display: block;
-  object-fit: cover;
   max-width: 100%;
 }
 

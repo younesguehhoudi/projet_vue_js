@@ -15,6 +15,7 @@
         :imageUrl="imageData.imageUrl"
         :description="imageData.description"
         :mediaType="imageData.mediaType"
+        mediaFit="contain"
         :favoritePayload="imageData"
         @add-favorite="handleAddFavorite"
       />
@@ -182,17 +183,23 @@ const goBack = () => {
 
 .fullscreen-media {
   width: 100%;
-  min-height: 60vh;
+  min-height: min(60vh, 680px);
   max-height: 80vh;
   overflow: hidden;
 }
 
-.fullscreen-media img,
+.fullscreen-media img {
+  width: 100%;
+  height: auto;
+  max-height: 80vh;
+  display: block;
+  object-fit: contain;
+}
+
 .fullscreen-media iframe {
   width: 100%;
   height: 100%;
   display: block;
-  object-fit: contain;
 }
 
 .fullscreen-caption {
