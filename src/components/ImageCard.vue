@@ -57,6 +57,45 @@ const emitAddFavorite = () => {
 
 <style scoped>
 .image-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  padding: 1.2rem;
+  border-radius: 24px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 24px 48px var(--color-shadow);
+  backdrop-filter: blur(12px);
+  width: 100%;
+  max-width: 100%;
+  min-height: 100%;
+  box-sizing: border-box;
+}
+
+.image-card-media-wrapper {
+  border-radius: 18px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.04);
+  aspect-ratio: 4 / 3;
+  max-height: 280px;
+  width: 100%;
+}
+
+.image-card-media {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  max-width: 100%;
+}
+
+.video {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: none;
+}
+
+.image-card {
   display: grid;
   gap: 1.2rem;
   padding: 1.2rem;
@@ -65,24 +104,10 @@ const emitAddFavorite = () => {
   border: 1px solid var(--color-border);
   box-shadow: 0 24px 48px var(--color-shadow);
   backdrop-filter: blur(12px);
-}
-
-.image-card-media-wrapper {
-  border-radius: 18px;
+  width: 100%;
+  max-width: 100%;
+  min-height: 100%;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.04);
-}
-
-.image-card-media {
-  width: 100%;
-  display: block;
-  object-fit: cover;
-}
-
-.video {
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  border: none;
 }
 
 .image-card-body {
@@ -94,6 +119,8 @@ const emitAddFavorite = () => {
   margin: 0;
   font-size: 1.25rem;
   font-weight: 700;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .image-card-date {
@@ -106,6 +133,12 @@ const emitAddFavorite = () => {
 .image-card-description {
   line-height: 1.7;
   color: var(--color-muted);
+  overflow-wrap: break-word;
+  word-break: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .favorite-button {
