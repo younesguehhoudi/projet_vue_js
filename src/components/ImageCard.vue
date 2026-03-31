@@ -1,5 +1,5 @@
 <template>
-  <div class="image-card">
+  <div class="image-card" :class="{ clickable: hasDetail }" @click="goToDetail">
     <div class="image-card-media-wrapper">
       <img
         v-if="mediaType === 'image'"
@@ -38,6 +38,9 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
+import { useRouter } from 'vue-router'
+
 const emit = defineEmits(['add-favorite'])
 
 const props = defineProps({
@@ -47,9 +50,33 @@ const props = defineProps({
   description: { type: String, default: '' },
   mediaType: { type: String, default: 'image' },
   favoritePayload: { type: Object, default: null },
+  detailRoute: { type: String, default: '' },
+  detailParams: { type: Object, default: () => ({}) },
+  detailState: { type: Object, default: null },
 })
 
-const emitAddFavorite = () => {
+const router = useRouter()
+const hasDetail = computed(() => Boolean(props.detailRoute))
+
+const goToDetail = () => {
+  if (!props.detailRoute) return
+
+  if (props.detailState && props.detailParams?.id) {
+    sessionStorage.setItem(
+      `detail-image-${props.detailParams.id}`,
+      JSON.stringify(props.detailState),
+    )
+  }
+
+  router.push({
+    name: props.detailRoute,
+    params: props.detailParams,
+    state: props.detailState,
+  })
+}
+
+const emitAddFavorite = (event) => {
+  event.stopPropagation()
   if (!props.favoritePayload) return
   emit('add-favorite', props.favoritePayload)
 }
@@ -57,8 +84,7 @@ const emitAddFavorite = () => {
 
 <style scoped>
 .image-card {
-  display: flex;
-  flex-direction: column;
+  display: grid;
   gap: 1.2rem;
   padding: 1.2rem;
   border-radius: 24px;
@@ -69,7 +95,16 @@ const emitAddFavorite = () => {
   width: 100%;
   max-width: 100%;
   min-height: 100%;
-  box-sizing: border-box;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.image-card.clickable {
+  cursor: pointer;
+}
+
+.image-card.clickable:hover {
+  transform: translateY(-2px);
 }
 
 .image-card-media-wrapper {
@@ -93,21 +128,6 @@ const emitAddFavorite = () => {
   width: 100%;
   aspect-ratio: 16 / 9;
   border: none;
-}
-
-.image-card {
-  display: grid;
-  gap: 1.2rem;
-  padding: 1.2rem;
-  border-radius: 24px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  box-shadow: 0 24px 48px var(--color-shadow);
-  backdrop-filter: blur(12px);
-  width: 100%;
-  max-width: 100%;
-  min-height: 100%;
-  overflow: hidden;
 }
 
 .image-card-body {
@@ -156,15 +176,5 @@ const emitAddFavorite = () => {
 
 .favorite-button:hover {
   transform: translateY(-1px) scale(1.01);
-}
-
-@media (min-width: 768px) {
-  .image-card {
-    padding: 1.5rem;
-  }
-
-  .image-card-title {
-    font-size: 1.4rem;
-  }
 }
 </style>
