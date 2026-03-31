@@ -7,6 +7,31 @@
         Decouvrez les images recentes des rovers martiens. Selectionnez vos favoris en un clic.
       </p>
     </section>
+
+    <section class="search-panel">
+      <label class="search-label" for="photo-search">Recherche rapide</label>
+      <div class="search-input-group">
+        <input
+          id="photo-search"
+          v-model="searchTerm"
+          type="search"
+          placeholder="Titre, caméra, description..."
+          class="search-input"
+        />
+        <button
+          v-if="searchTerm"
+          type="button"
+          class="search-clear"
+          @click="searchTerm = ''"
+        >
+          ✕
+        </button>
+      </div>
+      <p class="search-info" v-if="searchTerm">
+        {{ filteredPhotos.length }} résultat{{ filteredPhotos.length > 1 ? 's' : '' }} trouvé{{ filteredPhotos.length > 1 ? 's' : '' }}
+      </p>
+    </section>
+
     <p v-if="loading" class="loading">Chargement des photos...</p>
     <p v-else-if="error" class="error">{{ error }}</p>
 
@@ -28,7 +53,7 @@
     </div>
 
     <button
-      v-if="displayedCount < allPhotos.length"
+      v-if="displayedCount < filteredPhotos.length"
       class="load-more"
       type="button"
       @click="displayedCount += 12"
@@ -36,7 +61,9 @@
       Charger la suite 🚀
     </button>
 
-    <div v-else class="no-photos">Aucune photo disponible pour ce rover</div>
+    <div v-else class="no-photos">
+      {{ searchTerm ? 'Aucune photo ne correspond à votre recherche.' : 'Aucune photo disponible pour ce rover' }}
+    </div>
 
     <NotificationToast :message="toastMessage" :visible="toastVisible" />
   </div>
@@ -53,7 +80,19 @@ import { useFavoritesStore } from '../stores/favorites'
 const route = useRoute()
 const allPhotos = ref([])
 const displayedCount = ref(12)
-const visiblePhotos = computed(() => allPhotos.value.slice(0, displayedCount.value))
+const searchTerm = ref('')
+const filteredPhotos = computed(() => {
+  const query = searchTerm.value.trim().toLowerCase()
+  if (!query) return allPhotos.value
+
+  return allPhotos.value.filter((photo) => {
+    const title = photo.title?.toLowerCase() ?? ''
+    const description = photo.description?.toLowerCase() ?? ''
+    const date = photo.date?.toLowerCase() ?? ''
+    return title.includes(query) || description.includes(query) || date.includes(query)
+  })
+})
+const visiblePhotos = computed(() => filteredPhotos.value.slice(0, displayedCount.value))
 const loading = ref(true)
 const error = ref(null)
 const toastMessage = ref('')
@@ -156,6 +195,11 @@ const handleAddFavorite = (image) => {
 // Appel initial au chargement du composant
 fetchRoverPhotos()
 
+// Reset displayed count and keep search in sync
+watch(searchTerm, () => {
+  displayedCount.value = 12
+})
+
 // Watch sur le changement du paramètre de route
 watch(
   () => route.params.roverName,
@@ -219,6 +263,59 @@ h1 {
   align-items: start;
   justify-content: center;
   grid-auto-rows: 1fr;
+}
+
+.search-panel {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1.2rem 1.4rem;
+  border-radius: 24px;
+  background: var(--color-surface-strong);
+  border: 1px solid var(--color-border);
+}
+
+.search-label {
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  font-size: 0.85rem;
+}
+
+.search-input-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.search-input {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  padding: 0.95rem 1rem;
+  border-radius: 18px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: inherit;
+}
+
+.search-input::placeholder {
+  color: var(--color-muted);
+}
+
+.search-clear {
+  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-muted);
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.search-info {
+  color: var(--color-muted);
+  font-size: 0.95rem;
 }
 
 .load-more {
