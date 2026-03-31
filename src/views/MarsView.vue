@@ -58,7 +58,7 @@
       type="button"
       @click="displayedCount += 12"
     >
-      Charger la suite 🚀
+      Charger la suite
     </button>
 
     <div v-else class="no-photos">
@@ -111,6 +111,7 @@ const buildPhotoCardsFromMarsApi = (items, roverName) =>
     date: photo.earth_date ?? '',
     imageUrl: photo.img_src,
     description: `Camera: ${photo.camera?.full_name ?? 'N/A'} | Sol: ${photo.sol ?? 'N/A'}`,
+    mediaType: 'image',
   }))
 
 const buildPhotoCardsFromImagesApi = (items, roverName) =>
@@ -126,6 +127,7 @@ const buildPhotoCardsFromImagesApi = (items, roverName) =>
         date,
         imageUrl: item.links[0].href,
         description: data.description ?? 'Photo issue de la NASA Image API',
+        mediaType: 'image',
       }
     })
 
